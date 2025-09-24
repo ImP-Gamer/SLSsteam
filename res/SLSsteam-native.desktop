@@ -27,7 +27,7 @@ Comment[th]=โปรแกรมสำหรับจัดการและ�
 Comment[tr]=Steam üzerinden oyun oynama ve düzenleme uygulaması
 Comment[uk]=Програма для керування іграми та запуску ігор у Steam
 Comment[vi]=Ứng dụng để quản lý và chơi trò chơi trên Steam
-Exec=/usr/bin/env LD_AUDIT="/usr/lib32/libSLSsteam.so" /usr/bin/steam %U
+Exec=/usr/bin/env LD_AUDIT="/usr/lib32/libSLSsteam.so" /usr/bin/steam-native %U
 StartupWMClass=Steam
 Icon=SLSsteam
 Terminal=false
@@ -66,7 +66,7 @@ Name[th]=ร้านค้า
 Name[tr]=Mağaza
 Name[uk]=Крамниця
 Name[vi]=Cửa hàng
-Exec=steam steam://store
+Exec=steam-native steam://store
 
 [Desktop Action Community]
 Name=Community
@@ -96,7 +96,7 @@ Name[th]=ชุมชน
 Name[tr]=Topluluk
 Name[uk]=Спільнота
 Name[vi]=Cộng đồng
-Exec=steam steam://url/SteamIDControlPage
+Exec=steam-native steam://url/SteamIDControlPage
 
 [Desktop Action Library]
 Name=Library
@@ -126,7 +126,7 @@ Name[th]=คลัง
 Name[tr]=Kütüphane
 Name[uk]=Бібліотека
 Name[vi]=Thư viện
-Exec=steam steam://open/games
+Exec=steam-native steam://open/games
 
 [Desktop Action Servers]
 Name=Servers
@@ -156,7 +156,7 @@ Name[th]=เซิร์ฟเวอร์
 Name[tr]=Sunucular
 Name[uk]=Сервери
 Name[vi]=Máy chủ
-Exec=steam steam://open/servers
+Exec=steam-native steam://open/servers
 
 [Desktop Action Screenshots]
 Name=Screenshots
@@ -186,7 +186,7 @@ Name[th]=ภาพหน้าจอ
 Name[tr]=Ekran Görüntüleri
 Name[uk]=Скріншоти
 Name[vi]=Ảnh chụp
-Exec=steam steam://open/screenshots
+Exec=steam-native steam://open/screenshots
 
 [Desktop Action News]
 Name=News
@@ -216,7 +216,7 @@ Name[th]=ข่าวสาร
 Name[tr]=Haberler
 Name[uk]=Новини
 Name[vi]=Tin tức
-Exec=steam steam://open/news
+Exec=steam-native steam://open/news
 
 [Desktop Action Settings]
 Name=Settings
@@ -246,11 +246,11 @@ Name[th]=การตั้งค่า
 Name[tr]=Ayarlar
 Name[uk]=Налаштування
 Name[vi]=Thiết lập
-Exec=steam steam://open/settings
+Exec=steam-native steam://open/settings
 
 [Desktop Action BigPicture]
 Name=Big Picture
-Exec=steam steam://open/bigpicture
+Exec=steam-native steam://open/bigpicture
 
 [Desktop Action Friends]
 Name=Friends
@@ -280,4 +280,4 @@ Name[th]=เพื่อน
 Name[tr]=Arkadaşlar
 Name[uk]=Друзі
 Name[vi]=Bạn bè
-Exec=steam steam://open/friends
+Exec=steam-native steam://open/friends

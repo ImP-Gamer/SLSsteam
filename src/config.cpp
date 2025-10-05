@@ -227,7 +227,7 @@ bool CConfig::loadSettings()
 
 				CDlcData data;
 				data.parentId = parentId;
-				g_pLog->debug("Adding DlcData for %u\n", parentId);
+				g_pLog->info("Adding DlcData for %u\n", parentId);
 
 				for(auto& dlc : app.second)
 				{
@@ -236,7 +236,7 @@ bool CConfig::loadSettings()
 					const std::string dlcName = dlc.second.as<std::string>();
 
 					data.dlcIds[dlcId] = dlcName;
-					g_pLog->debug("DlcId %u -> %s\n", dlcId, dlcName.c_str());
+					g_pLog->info("DlcId %u -> %s\n", dlcId, dlcName.c_str());
 				}
 
 				dlcData[parentId] = data;
@@ -269,7 +269,7 @@ bool CConfig::loadSettings()
 					denuvoGames[steamId].emplace(appId);
 
 					//Again, not loggin SteamId because of privacy
-					g_pLog->debug("Added DenuvoGame %u\n", appId);
+					g_pLog->info("Added DenuvoGame %u\n", appId);
 				}
 			}
 			catch (...)

@@ -101,7 +101,7 @@ class CLog
 
 		ofstream << "[" << logLvlToStr(lvl) << "] " << formatted;
 
-		if (notifySS.str().size() > 0)
+		if (shouldNotify() && notifySS.str().size() > 0)
 		{
 			ofstream << "\n";
 

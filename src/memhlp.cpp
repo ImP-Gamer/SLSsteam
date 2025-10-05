@@ -94,7 +94,7 @@ lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm
 				break;
 		}
 
-		g_pLog->info("%s at %p\n", name, address);
+		g_pLog->debug("%s at %p\n", name, address);
 	}
 
 	return address;

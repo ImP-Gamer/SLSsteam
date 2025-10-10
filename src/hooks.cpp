@@ -147,7 +147,14 @@ static void hkLogSteamPipeCall(const char* iface, const char* fn)
 
 	if (g_config.extendedLogging)
 	{
-		g_pLog->debug("LogSteamPipeCall(%s, %s)\n", iface, fn);
+		g_pLog->debug
+		(
+			"%s(%s, %s)\n",
+
+			Hooks::LogSteamPipeCall.name.c_str(),
+			iface,
+			fn
+		);
 	}
 }
 

@@ -1,4 +1,5 @@
 #include "config.hpp"
+#include "feats/ticket.hpp"
 #include "globals.hpp"
 #include "hooks.hpp"
 #include "log.hpp"

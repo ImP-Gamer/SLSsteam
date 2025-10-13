@@ -29,9 +29,9 @@ std::string Ticket::getTicketPath(uint32_t appId)
 	return ss.str();
 }
 
-Ticket::CTicketData Ticket::getCachedTicket(uint32_t appId)
+CAppTicket Ticket::getCachedTicket(uint32_t appId)
 {
-	CTicketData ticket {};
+	CAppTicket ticket {};
 
 	const auto path = getTicketPath(appId);
 	if (!std::filesystem::exists(path.c_str()))
@@ -44,22 +44,18 @@ Ticket::CTicketData Ticket::getCachedTicket(uint32_t appId)
 	g_pLog->debug("Reading ticket for %u\n", appId);
 
 	ifs.read(reinterpret_cast<char*>(&ticket), sizeof ticket);
-	g_pLog->debug("Ticket: %u, %u, %u\n", ticket.steamId, ticket.appId, ticket.size);
+	//g_pLog->debug("Ticket: %u, %u, %u\n", ticket.getSteamId(), ticket.getAppId(), ticket.getSize());
 
 	return ticket;
 }
 
-bool Ticket::saveTicketToCache(uint32_t appId, uint32_t steamId, void* ticketData, uint32_t ticketSize, uint32_t* a4)
+bool Ticket::saveTicketToCache(uint32_t appId, void* ticketData, uint32_t ticketSize, uint32_t* a4)
 {
-	CTicketData ticket {};
-	ticket.appId = appId;
-	ticket.steamId = steamId;
-
+	CAppTicket ticket {};
 	g_pLog->debug("Saving ticket for %u...\n", appId);
 
 	//steamId is in ticket too, but whatever
-	memcpy(ticket.ticket, ticketData, ticketSize);
-	ticket.size = ticketSize;
+	memcpy(ticket.bytes, ticketData, ticketSize);
 	memcpy(ticket.extraData, a4, sizeof(ticket.extraData));
 
 	const auto path = getTicketPath(appId);
@@ -76,20 +72,21 @@ uint32_t Ticket::getTicketOwnershipExtendedData(uint32_t appId, void* ticket, ui
 {
 	if (ticketSize)
 	{
-		saveTicketToCache(appId, g_currentSteamId, ticket, ticketSize, a4);
+		saveTicketToCache(appId, ticket, ticketSize, a4);
 		return 0;
 	}
 
-	const Ticket::CTicketData cached = Ticket::getCachedTicket(appId);
-	if (!cached.size)
+	const CAppTicket cached = Ticket::getCachedTicket(appId);
+	const uint32_t size = cached.getSize();
+	if (!size)
 	{
 		return 0;
 	}
 
-	steamIdSpoof = cached.steamId;
+	steamIdSpoof = cached.getSteamId();
 
-	memcpy(ticket, cached.ticket, cached.size);
+	memcpy(ticket, cached.bytes, size);
 	memcpy(a4, cached.extraData, sizeof(cached.extraData));
 
-	return cached.size;
+	return size;
 }

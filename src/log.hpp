@@ -52,6 +52,11 @@ class CLog
 	__attribute__((hot))
 	void __log(LogLevel lvl, const char* msg, Args... args)
 	{
+		if (lvl < getMinLevel())
+		{
+			return;
+		}
+
 		size_t size = snprintf(nullptr, 0, msg, args...) + 1; //Allocate one more byte for zero termination
 		char* formatted = reinterpret_cast<char*>(malloc(size));
 		snprintf(formatted, size, msg, args...);
@@ -96,7 +101,7 @@ class CLog
 
 		ofstream << "[" << logLvlToStr(lvl) << "] " << formatted;
 
-		if (notifySS.str().size() > 0)
+		if (shouldNotify() && notifySS.str().size() > 0)
 		{
 			ofstream << "\n";
 
@@ -154,6 +159,7 @@ public:
 	}
 
 	//Do not include config.hpp in this header, otherwise things will break :) (proly due to recursive inclusion)
+	static LogLevel getMinLevel();
 	static bool shouldNotify();
 	static CLog* createDefaultLog();
 };

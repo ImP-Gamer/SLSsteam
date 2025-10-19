@@ -47,6 +47,9 @@ static const char* defaultConfig =
 "DenuvoGames:\n\n"
 "#Spoof Denuvo Games owner instead of blocking them\n"
 "DenuvoSpoof: no\n\n"
+"#Pretends Steam never received an Encrypted AppTicket, so it\n"
+"#only gets saved to the cache instead of \"being used up\"\n"
+"BlockEncryptedAppTickets: no\n\n"
 "#Automatically disable SLSsteam when steamclient.so does not match a predefined file hash that is known to work\n"
 "#You should enable this if you're planing to use SLSsteam with Steam Deck's gamemode\n"
 "SafeMode: no\n\n"
@@ -57,6 +60,15 @@ static const char* defaultConfig =
 "WarnHashMissmatch: no\n\n"
 "#Notify when SLSsteam is done initializing\n"
 "NotifyInit: yes\n\n"
+"#Log levels:\n"
+"#Once = 0\n"
+"#Debug = 1\n"
+"#Info = 2\n"
+"#NotifyShort = 3\n"
+"#NotifyLong = 4\n"
+"#Warn = 5\n"
+"#None = 6\n"
+"LogLevel: 2\n\n"
 "#Logs all calls to Steamworks (this makes the logfile huge! Only useful for debugging/analyzing\n"
 "ExtendedLogging: no";
 
@@ -147,6 +159,8 @@ bool CConfig::loadSettings()
 	warnHashMissmatch = getSetting<bool>(node, "WarnHashMissmatch", false);
 	notifyInit = getSetting<bool>(node, "NotifyInit", true);
 	extendedLogging = getSetting<bool>(node, "ExtendedLogging", false);
+	logLevel = getSetting<unsigned int>(node, "LogLevel", 2);
+	blockEncryptedAppTickets = getSetting<bool>(node, "BlockEncryptedAppTickets", false);
 	denuvoSpoof = getSetting<bool>(node, "DenuvoSpoof", false);
 
 	//TODO: Create smart logging function to log them automatically via getSetting
@@ -159,7 +173,9 @@ bool CConfig::loadSettings()
 	g_pLog->info("WarnHashMissmatch: %i\n", warnHashMissmatch);
 	g_pLog->info("NotifyInit: %i\n", notifyInit);
 	g_pLog->info("ExtendedLogging: %i\n", extendedLogging);
+	g_pLog->info("LogLevel: %i\n", logLevel);
 	g_pLog->info("DenuvoSpoof: %i\n", denuvoSpoof);
+	g_pLog->info("BlockEncryptedAppTickets: %i\n", blockEncryptedAppTickets);
 
 	//TODO: Create function to parse these kinda nodes, instead of c+p them
 	const auto appIdsNode = node["AppIds"];
@@ -217,7 +233,7 @@ bool CConfig::loadSettings()
 
 				CDlcData data;
 				data.parentId = parentId;
-				g_pLog->debug("Adding DlcData for %u\n", parentId);
+				g_pLog->info("Adding DlcData for %u\n", parentId);
 
 				for(auto& dlc : app.second)
 				{
@@ -226,7 +242,7 @@ bool CConfig::loadSettings()
 					const std::string dlcName = dlc.second.as<std::string>();
 
 					data.dlcIds[dlcId] = dlcName;
-					g_pLog->debug("DlcId %u -> %s\n", dlcId, dlcName.c_str());
+					g_pLog->info("DlcId %u -> %s\n", dlcId, dlcName.c_str());
 				}
 
 				dlcData[parentId] = data;
@@ -259,7 +275,7 @@ bool CConfig::loadSettings()
 					denuvoGames[steamId].emplace(appId);
 
 					//Again, not loggin SteamId because of privacy
-					g_pLog->debug("Added DenuvoGame %u\n", appId);
+					g_pLog->info("Added DenuvoGame %u\n", appId);
 				}
 			}
 			catch (...)

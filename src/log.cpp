@@ -27,6 +27,11 @@ CLog::~CLog()
 }
 
 //Dirty workaround for not being able to access g_config from __log
+LogLevel CLog::getMinLevel()
+{
+	return static_cast<LogLevel>(g_config.logLevel);
+}
+
 bool CLog::shouldNotify()
 {
 	return g_config.notifications;

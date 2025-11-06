@@ -79,6 +79,7 @@ namespace Hooks
 
 	typedef bool(*IClientUser_BIsSubscribedApp_t)(void*, uint32_t);
 	typedef bool(*IClientUser_BLoggedOn_t)(void*);
+	typedef uint32_t(*IClientUser_BUpdateAppOwnershipInfo_t)(void*, uint32_t, bool);
 	typedef bool(*IClientUser_CheckAppOwnership_t)(void*, uint32_t, CAppOwnershipInfo*);
 	typedef bool(*IClientUser_GetAPICallResult_t)(void*, uint32_t, uint32_t, void*, uint32_t, uint32_t, bool*);
 	typedef bool(*IClientUser_GetEncryptedAppTicket_t)(void*, void*, uint32_t, uint32_t*);
@@ -100,6 +101,7 @@ namespace Hooks
 
 	extern DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp;
 	extern DetourHook<IClientUser_BLoggedOn_t> IClientUser_BLoggedOn;
+	extern DetourHook<IClientUser_BUpdateAppOwnershipInfo_t> IClientUser_BUpdateAppOwnershipInfo;
 	extern DetourHook<IClientUser_CheckAppOwnership_t> IClientUser_CheckAppOwnership;
 	extern DetourHook<IClientUser_GetAPICallResult_t> IClientUser_GetAPICallResult;
 	extern DetourHook<IClientUser_GetEncryptedAppTicket_t> IClientUser_GetEncryptedAppTicket;

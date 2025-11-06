@@ -481,6 +481,31 @@ static bool hkClientUser_BLoggedOn(void* pClientUser)
 	return ret;
 }
 
+static uint32_t hkClientUser_BUpdateOwnershipInfo(void* pClientUser, uint32_t appId, bool staleOnly)
+{
+	const auto ticket = Ticket::getCachedTicket(appId);
+	if (!g_config.isAddedAppId(appId) && !ticket.steamId)
+	{
+		staleOnly = false;
+		g_pLog->debug("Force re-requesting OwnershipInfo for %u\n", appId);
+	}
+
+	const uint32_t ret = Hooks::IClientUser_BUpdateAppOwnershipInfo.tramp.fn(pClientUser, appId, staleOnly);
+
+	g_pLog->debug
+	(
+		"%s(%p, %u, %i) -> %u\n",
+
+		Hooks::IClientUser_BUpdateAppOwnershipInfo.name.c_str(),
+		pClientUser,
+		appId,
+		staleOnly,
+		ret
+	);
+
+	return ret;
+}
+
 __attribute__((hot))
 static bool hkClientUser_CheckAppOwnership(void* pClientUser, uint32_t appId, CAppOwnershipInfo* pOwnershipInfo)
 {
@@ -829,6 +854,7 @@ namespace Hooks
 
 	DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp("IClientUser::BIsSubscribedApp");
 	DetourHook<IClientUser_BLoggedOn_t> IClientUser_BLoggedOn("IClientUser::BLoggedOn");
+	DetourHook<IClientUser_BUpdateAppOwnershipInfo_t> IClientUser_BUpdateAppOwnershipInfo("IClientUser::BUpdateOwnershipInfo");
 	DetourHook<IClientUser_CheckAppOwnership_t> IClientUser_CheckAppOwnership("IClientUser::CheckAppOwnership");
 	DetourHook<IClientUser_GetAPICallResult_t> IClientUser_GetAPICallResult("IClientUser::GetAPICallResult");
 	DetourHook<IClientUser_GetAppOwnershipTicketExtendedData_t> IClientUser_GetAppOwnershipTicketExtendedData("IClientUser::GetAppOwnershipTicketExtendedData");
@@ -906,6 +932,14 @@ bool Hooks::setup()
 		prologue.size(),
 		&hkClientUtils_PipeLoop
 	);
+	bool clientUser_UpdateOwnershipInfo = IClientUser_BUpdateAppOwnershipInfo.setup
+	(
+		Patterns::BUpdateAppOwnershipInfo,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size(),
+		&hkClientUser_BUpdateOwnershipInfo
+	);
 	bool clientUser_PipeLoop = IClientUser_PipeLoop.setup
 	(
 		Patterns::IClientUser_PipeLoop,
@@ -968,6 +1002,7 @@ bool Hooks::setup()
 		&& clientAppManager_PipeLoop
 		&& clientRemoteStorage_PipeLoop
 		&& clientUtils_PipeLoop
+		&& clientUser_UpdateOwnershipInfo
 		&& clientUser_PipeLoop
 		&& requiresLegacyCDKey
 		&& getAppOwnershipTicketExtendedData
@@ -1006,6 +1041,7 @@ void Hooks::place()
 
 	IClientUser_BIsSubscribedApp.place();
 	IClientUser_BLoggedOn.place();
+	IClientUser_BUpdateAppOwnershipInfo.place();
 	IClientUser_CheckAppOwnership.place();
 	IClientUser_GetAPICallResult.place();
 	IClientUser_GetEncryptedAppTicket.place();
@@ -1032,6 +1068,7 @@ void Hooks::remove()
 
 	IClientUser_BIsSubscribedApp.remove();
 	IClientUser_BLoggedOn.remove();
+	IClientUser_BUpdateAppOwnershipInfo.remove();
 	IClientUser_CheckAppOwnership.remove();
 	IClientUser_GetAPICallResult.remove();
 	IClientUser_GetEncryptedAppTicket.remove();

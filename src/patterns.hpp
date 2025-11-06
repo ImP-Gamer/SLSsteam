@@ -52,4 +52,7 @@ namespace Patterns
 
 	//Relative
 	constexpr lm_string_t ParseProtoBufResponse = "E8 ? ? ? ? 58 8B 45 ? 8B 8D";
+
+	//Mid function
+	constexpr lm_string_t BUpdateAppOwnershipInfo = "83 EC 0C 89 F3 8B 7D ? FF 30 E8 ? ? ? ? 83 C4 10 83 FF 01 77 ? 84 C0 75 ? 80 7D ? 00 74 ? 80 7D ? 00 0F 84 ? ? ? ? 8D 65";
 }

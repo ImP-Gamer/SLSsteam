@@ -250,7 +250,7 @@ static bool hkClientAppManager_IsAppDlcInstalled(void* pClientAppManager, uint32
 		ret
 	);
 
-	if (DLC::isAppDlcInstalled(appId, dlcId))
+	if (DLC::isAppDlcInstalled(dlcId))
 	{
 		return true;
 	}

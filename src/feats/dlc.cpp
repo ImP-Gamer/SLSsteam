@@ -1,46 +1,47 @@
 #include "dlc.hpp"
 
-#include "../sdk/IClientAppManager.hpp"
+#include "../sdk/IClientUtils.hpp"
 
 #include "../config.hpp"
 
 
+bool DLC::shouldUnlockDlc(uint32_t appId)
+{
+	if (!g_pClientUtils->getAppId())
+	{
+		return false;
+	}
+
+	if (g_config.shouldExcludeAppId(appId))
+	{
+		return false;
+	}
+	
+	return true;
+}
+
 bool DLC::isDlcEnabled(uint32_t appId)
 {
-	//TODO: Add check for legit ownership to allow toggle on/off
-	return !g_config.shouldExcludeAppId(appId);
+	//This isn't the best way to verify legit ownership, but it seems to fit
+	//the rest of my design choices better than any other solution I can think off
+	return g_config.isAddedAppId(appId) && shouldUnlockDlc(appId);
 }
 
 bool DLC::isSubscribed(uint32_t appId)
 {
-	return !g_config.shouldExcludeAppId(appId);
+	return shouldUnlockDlc(appId);
 }
 
-bool DLC::isAppDlcInstalled(uint32_t appId, uint32_t dlcId)
+bool DLC::isAppDlcInstalled(uint32_t appId)
 {
-	//Do not pretend things are installed while downloading Apps, otherwise downloads will break for some of them
-	auto state = g_pClientAppManager->getAppInstallState(appId);
-	//TODO: Adjust to newly dumped EAppState
-	//Afaik we can't just check for FULLY_INSTALLED here. So we need to filter some states
-	if (state & APPSTATE_UPDATE_REQUIRED || state & APPSTATE_UPDATE_PAUSED)
-	{
-		g_pLog->once("Skipping DlcId %u because AppId %u has AppState %i\n", dlcId, appId, state);
-		return false;
-	}
-
-	if (g_config.shouldExcludeAppId(dlcId))
-	{
-		return false;
-	}
-
-	return true;
+	return shouldUnlockDlc(appId);
 }
 
 bool DLC::userSubscribedInTicket(uint32_t appId)
 {
 	//Might want to compare the steamId param to the g_currentSteamId in the future
 	//Although not doing that might also work for Dedicated servers?
-	return !g_config.shouldExcludeAppId(appId);
+	return shouldUnlockDlc(appId);
 }
 
 uint32_t DLC::getDlcCount(uint32_t appId)

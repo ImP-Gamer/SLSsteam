@@ -2,10 +2,10 @@
 
 #include <cstdint>
 
-enum EMsgType : uint16_t
+enum EMsgType
 {
-	EMSG_REQUEST_USERSTATS_RESPONSE = 0x333,
-	EMSG_APPOWNERSHIPTICKET_RESPONSE = 0x35a
+	EMSG_REQUEST_USERSTATS_RESPONSE = 0x80000333,
+	EMSG_APPOWNERSHIPTICKET_RESPONSE = 0x8000035a
 };
 
 
@@ -13,8 +13,8 @@ class CProtoBufMsgBase
 {
 public:
 	char __pad_0x0[0x14];	//0x0
-	uint16_t type;			//0x14
-	char __pad_0x16[0xA];	//0x16
+	uint32_t type;			//0x14
+	char __pad_0x18[0x8];	//0x18
 	void* body;				//0x20
 	char __pad_0x24[0x8];	//0x24
 }; //0x2C

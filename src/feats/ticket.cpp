@@ -97,13 +97,13 @@ void Ticket::recvAppOwnershipTicketResponse(CMsgAppOwnershipTicketResponse* resp
 
 		case ERESULT_OK:
 			saveTicketToCache(resp->appId, *resp->ppTicket, *pSize);
-			break;
+			return;
 
 		case ERESULT_ACCESS_DENIED:
 			auto cached = getCachedTicket(resp->appId);
 			if (!cached.steamId)
 			{
-				break;
+				return;
 			}
 
 			const uint32_t size = cached.getSize();

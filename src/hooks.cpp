@@ -228,13 +228,7 @@ static void* hkClientAppManager_LaunchApp(void* pClientAppManager, uint32_t* pAp
 			a3,
 			a4
 		);
-
 		Apps::launchApp(*pAppId);
-		if(!g_pClientUser->isLoggedOn() || g_pClientUtils->getOfflineMode())
-		{
-			g_pClientUser->updateOwnershipInfo(*pAppId, false);
-			g_pLog->once("Force updateOwnershipInfo for %i\n", *pAppId);
-		}
 	}
 
 	//Do not do anything in post! Otherwise App launching will break
@@ -500,7 +494,7 @@ static bool hkClientUser_BLoggedOn(void* pClientUser)
 static uint32_t hkClientUser_BUpdateOwnershipInfo(void* pClientUser, uint32_t appId, bool staleOnly)
 {
 	const auto cached = Ticket::getCachedTicket(appId);
-	if (!cached.steamId)
+	if (!g_config.isAddedAppId(appId) && !cached.steamId)
 	{
 		staleOnly = false;
 		g_pLog->debug("Force re-requesting OwnershipInfo for %u\n", appId);

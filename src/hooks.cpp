@@ -21,6 +21,7 @@
 
 #include "feats/apps.hpp"
 #include "feats/dlc.hpp"
+#include "feats/fakeappid.hpp"
 #include "feats/fakeoffline.hpp"
 #include "feats/ticket.hpp"
 
@@ -245,11 +246,7 @@ static bool hkSteamEngine_GetAPICallResult(void* pSteamEngine, uint32_t callback
 
 static bool hkSteamEngine_SetAppIdForCurrentPipe(void* pSteamEngine, uint32_t appId, bool a2)
 {
-	if (g_config.fakeAppIds.contains(appId))
-	{
-		g_pLog->once("Changing AppId of %u\n", appId);
-		appId = g_config.fakeAppIds[appId];
-	}
+	FakeAppIds::setAppIdForCurrentPipe(appId);
 
 	const bool ret = Hooks::CSteamEngine_SetAppIdForCurrentPipe.tramp.fn(pSteamEngine, appId, a2);
 

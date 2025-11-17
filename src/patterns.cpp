@@ -1,4 +1,5 @@
 #include "patterns.hpp"
+
 #include "globals.hpp"
 #include "memhlp.hpp"
 

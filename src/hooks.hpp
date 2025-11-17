@@ -40,8 +40,8 @@ public:
 	FunctionUnion_t<T> tramp;
 	size_t size;
 
+	DetourHook(const char* name);
 	DetourHook();
-	//DetourHook(const char* name);
 
 	virtual void place();
 	virtual void remove();

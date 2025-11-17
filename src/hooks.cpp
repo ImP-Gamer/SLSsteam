@@ -1,16 +1,18 @@
+#include "hooks.hpp"
+
 #include "config.hpp"
 #include "globals.hpp"
-#include "hooks.hpp"
 #include "log.hpp"
 #include "memhlp.hpp"
 #include "patterns.hpp"
-#include "sdk/CUser.hpp"
 #include "vftableinfo.hpp"
 
 #include "sdk/CAppOwnershipInfo.hpp"
 #include "sdk/CAppTicket.hpp"
 #include "sdk/CCallback.hpp"
 #include "sdk/CProtoBufMsgBase.hpp"
+#include "sdk/CUser.hpp"
+#include "sdk/EResult.hpp"
 #include "sdk/IClientUser.hpp"
 #include "sdk/IClientApps.hpp"
 #include "sdk/IClientAppManager.hpp"
@@ -18,8 +20,8 @@
 #include "sdk/IClientUser.hpp"
 
 #include "feats/apps.hpp"
-#include "feats/fakeoffline.hpp"
 #include "feats/dlc.hpp"
+#include "feats/fakeoffline.hpp"
 #include "feats/ticket.hpp"
 
 #include "libmem/libmem.h"
@@ -34,18 +36,24 @@
 #include <unistd.h>
 #include <vector>
 
+
 template<typename T>
 Hook<T>::Hook(const char* name)
 {
 	this->name = std::string(name);
 }
 
+template<typename T>
+DetourHook<T>::DetourHook(const char* name) : Hook<T>::Hook(name)
+{
+	this->size = 0;
+}
 
 //TODO: Fix this ungodly mess
 template<typename T>
-DetourHook<T>::DetourHook() : Hook<T>::Hook("")
+DetourHook<T>::DetourHook() : DetourHook<T>("")
 {
-	this->size = 0;
+
 }
 
 template<typename T>
@@ -57,8 +65,6 @@ VFTHook<T>::VFTHook(const char* name) : Hook<T>::Hook(name)
 template<typename T>
 bool DetourHook<T>::setup(Pattern_t pattern, T hookFn)
 {
-	//Hardcoding g_modSteamClient here is definitely bad design, but we can easily change that
-	//in case we ever need to
 	if (pattern.address == LM_ADDRESS_BAD)
 	{
 		return false;
@@ -197,17 +203,13 @@ static uint32_t hkCAPIJob_RequestUserStats(void* a0)
 		ret
 	);
 
-	switch (ret)
+	//Blindly overwriting any responses might not be very clever, but I'll keep it like this for now
+	if (ret != ERESULT_OK)
 	{
-		//1 = Success
-		case 1:
-			return ret;
-
-		//2 = Failed
-		//3 = No Connection
-		default:
-			return 3;
+		return ERESULT_NO_CONNECTION;
 	}
+
+	return ret;
 }
 
 __attribute__((hot))

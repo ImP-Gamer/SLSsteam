@@ -237,7 +237,7 @@ bool Ticket::getAPICallResult(ECallbackType type, void* pCallback)
 
 	uint32_t* pResult = reinterpret_cast<uint32_t*>(pCallback);
 
-	if (*pResult == 1)
+	if (*pResult == ERESULT_OK)
 	{
 		return false;
 	}
@@ -248,7 +248,7 @@ bool Ticket::getAPICallResult(ECallbackType type, void* pCallback)
 		return false;
 	}
 
-	*pResult = 1; //Success
+	*pResult = ERESULT_OK;
 	g_pLog->debug("Spoofed RequestEncryptedAppOwnershipTicket callback!\n");
 
 	return true;

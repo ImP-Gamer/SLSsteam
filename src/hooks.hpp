@@ -1,5 +1,6 @@
 #pragma once
 #include "memhlp.hpp"
+#include "patterns.hpp"
 
 #include "libmem/libmem.h"
 
@@ -39,13 +40,13 @@ public:
 	FunctionUnion_t<T> tramp;
 	size_t size;
 
-	DetourHook(const char* name);
+	DetourHook();
+	//DetourHook(const char* name);
 
 	virtual void place();
 	virtual void remove();
 
-	bool setup(const char* pattern, const MemHlp::SigFollowMode followMode, lm_byte_t* extraData, lm_size_t extraDataSize, T hookFn);
-	bool setup(const char* pattern, const MemHlp::SigFollowMode followMode, T hookFn);
+	bool setup(Pattern_t pattern, T hookFn);
 };
 
 template<typename T>

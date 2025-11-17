@@ -40,8 +40,10 @@ Hook<T>::Hook(const char* name)
 	this->name = std::string(name);
 }
 
+
+//TODO: Fix this ungodly mess
 template<typename T>
-DetourHook<T>::DetourHook(const char* name) : Hook<T>::Hook(name)
+DetourHook<T>::DetourHook() : Hook<T>::Hook("")
 {
 	this->size = 0;
 }
@@ -53,26 +55,20 @@ VFTHook<T>::VFTHook(const char* name) : Hook<T>::Hook(name)
 }
 
 template<typename T>
-bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, lm_byte_t* extraData, lm_size_t extraDataSize, T hookFn)
+bool DetourHook<T>::setup(Pattern_t pattern, T hookFn)
 {
 	//Hardcoding g_modSteamClient here is definitely bad design, but we can easily change that
 	//in case we ever need to
-	lm_address_t oFn = MemHlp::searchSignature(this->name.c_str(), pattern, g_modSteamClient, followMode, extraData, extraDataSize);
-	if (oFn == LM_ADDRESS_BAD)
+	if (pattern.address == LM_ADDRESS_BAD)
 	{
 		return false;
 	}
 
-	this->originalFn.address = oFn;
+	this->name = pattern.name;
+	this->originalFn.address = pattern.address;
 	this->hookFn.fn = hookFn;
 
 	return true;
-}
-
-template<typename T>
-bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, T hookFn)
-{
-	return setup(pattern, followMode, nullptr, 0, hookFn);
 }
 
 template<typename T>
@@ -860,29 +856,29 @@ static bool createAndPlaceSteamIdHook()
 
 namespace Hooks
 {
-	//TODO: Replace logging in hooks with Hook::name
-	DetourHook<LogSteamPipeCall_t> LogSteamPipeCall("LogSteamPipeCall");
-	DetourHook<ParseProtoBufResponse_t> ParseProtoBufResponse("ParseProtoBufResponse");
+	DetourHook<LogSteamPipeCall_t> LogSteamPipeCall;
+	DetourHook<ParseProtoBufResponse_t> ParseProtoBufResponse;
 
-	DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop("IClientAppManager::PipeLoop");
-	DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop("IClientApps::PipeLoop");
-	DetourHook<IClientRemoteStorage_PipeLoop_t> IClientRemoteStorage_PipeLoop("IClientRemoteStorage::PipeLoop");
-	DetourHook<IClientUtils_PipeLoop_t> IClientUtils_PipeLoop("IClientUtils::PipeLoop");
-	DetourHook<IClientUser_PipeLoop_t> IClientUser_PipeLoop("IClientUser::PipeLoop");
+	DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop;
+	DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop;
+	DetourHook<IClientRemoteStorage_PipeLoop_t> IClientRemoteStorage_PipeLoop;
+	DetourHook<IClientUtils_PipeLoop_t> IClientUtils_PipeLoop;
+	DetourHook<IClientUser_PipeLoop_t> IClientUser_PipeLoop;
 
-	DetourHook<CAPIJob_RequestUserStats_t> CAPIJob_RequestUserStats("CAPIJob_RequestUserStats");
+	DetourHook<CAPIJob_RequestUserStats_t> CAPIJob_RequestUserStats;
 
-	DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp("IClientUser::BIsSubscribedApp");
-	DetourHook<IClientUser_BLoggedOn_t> IClientUser_BLoggedOn("IClientUser::BLoggedOn");
-	DetourHook<IClientUser_BUpdateAppOwnershipInfo_t> IClientUser_BUpdateAppOwnershipInfo("IClientUser::BUpdateOwnershipInfo");
-	DetourHook<IClientUser_CheckAppOwnership_t> IClientUser_CheckAppOwnership("IClientUser::CheckAppOwnership");
-	DetourHook<IClientUser_GetAPICallResult_t> IClientUser_GetAPICallResult("IClientUser::GetAPICallResult");
-	DetourHook<IClientUser_GetAppOwnershipTicketExtendedData_t> IClientUser_GetAppOwnershipTicketExtendedData("IClientUser::GetAppOwnershipTicketExtendedData");
-	DetourHook<IClientUser_GetEncryptedAppTicket_t> IClientUser_GetEncryptedAppTicket("IClientUser::GetEncryptedAppTicket");
-	DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps("IClientUser::GetSubscribedApps");
-	DetourHook<IClientUser_IsUserSubscribedAppInTicket_t> IClientUser_IsUserSubscribedAppInTicket("IClientUser::IsUserSubscribedAppInTicket");
-	DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey("IClientUser::RequiresLegacyCDKey");
+	DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp;
+	DetourHook<IClientUser_BLoggedOn_t> IClientUser_BLoggedOn;
+	DetourHook<IClientUser_BUpdateAppOwnershipInfo_t> IClientUser_BUpdateAppOwnershipInfo;
+	DetourHook<IClientUser_CheckAppOwnership_t> IClientUser_CheckAppOwnership;
+	DetourHook<IClientUser_GetAPICallResult_t> IClientUser_GetAPICallResult;
+	DetourHook<IClientUser_GetEncryptedAppTicket_t> IClientUser_GetEncryptedAppTicket;
+	DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps;
+	DetourHook<IClientUser_GetAppOwnershipTicketExtendedData_t> IClientUser_GetAppOwnershipTicketExtendedData;
+	DetourHook<IClientUser_IsUserSubscribedAppInTicket_t> IClientUser_IsUserSubscribedAppInTicket;
+	DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey;
 
+	//TODO: Either save Pattern_t into the hook itself or something else. This sucks
 	VFTHook<IClientAppManager_BIsDlcEnabled_t> IClientAppManager_BIsDlcEnabled("IClientAppManager::BIsDlcEnabled");
 	VFTHook<IClientAppManager_GetAppUpdateInfo_t> IClientAppManager_GetAppUpdateInfo("IClientAppManager::GetAppUpdateInfo");
 	VFTHook<IClientAppManager_LaunchApp_t> IClientAppManager_LaunchApp("IClientAppManager::LaunchApp");
@@ -902,154 +898,42 @@ bool Hooks::setup()
 {
 	g_pLog->debug("Hooks::setup()\n");
 
-	IClientUser_GetSteamId = MemHlp::searchSignature("IClientUser::GetSteamId", Patterns::GetSteamId, g_modSteamClient, MemHlp::SigFollowMode::Relative);
-
-	lm_address_t runningApp = MemHlp::searchSignature("RunningApp", Patterns::FamilyGroupRunningApp, g_modSteamClient, MemHlp::SigFollowMode::Relative);
-
-	auto prologue = std::vector<lm_byte_t>({
-		0x56, 0x57, 0xe5, 0x89, 0x55
-	});
-	lm_address_t stopPlayingBorrowedApp = MemHlp::searchSignature
-	(
-		"StopPlayingBorrowedApp",
-		Patterns::StopPlayingBorrowedApp,
-		g_modSteamClient,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size()
-	);
-
-	//TODO: Automate these
-	bool clientApps_PipeLoop = IClientApps_PipeLoop.setup
-	(
-		Patterns::IClientApps_PipeLoop,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientApps_PipeLoop
-	);
-
-	bool clientAppManager_PipeLoop = IClientAppManager_PipeLoop.setup
-	(
-		Patterns::IClientAppManager_PipeLoop,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientAppManager_PipeLoop
-	);
-
-	bool clientRemoteStorage_PipeLoop = IClientRemoteStorage_PipeLoop.setup
-	(
-		Patterns::IClientRemoteStorage_PipeLoop,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientRemoteStorage_PipeLoop
-	);
-	bool clientUtils_PipeLoop = IClientUtils_PipeLoop.setup
-	(
-		Patterns::IClientUtils_PipeLoop,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientUtils_PipeLoop
-	);
-	bool clientUser_UpdateOwnershipInfo = IClientUser_BUpdateAppOwnershipInfo.setup
-	(
-		Patterns::BUpdateAppOwnershipInfo,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientUser_BUpdateOwnershipInfo
-	);
-	bool clientUser_PipeLoop = IClientUser_PipeLoop.setup
-	(
-		Patterns::IClientUser_PipeLoop,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientUser_PipeLoop
-	);
-
-	//TODO: Make this shit less verbose in case I fail my reversing & refactor for all this crap
-	prologue = std::vector<lm_byte_t>({
-		0x53, 0x56, 0x57, 0x55
-	});
-	bool requiresLegacyCDKey = IClientUser_RequiresLegacyCDKey.setup
-	(
-		Patterns::RequiresLegacyCDKey,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientUser_RequiresLegacyCDKey
-	);
-
-	bool getAppOwnershipTicketExtendedData = IClientUser_GetAppOwnershipTicketExtendedData.setup
-	(
-		Patterns::GetAppOwnershipTicketExtendedData,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientUser_GetAppOwnershipTicketExtendedData
-	);
-
-	prologue = std::vector<lm_byte_t>({
-		0x74, 0x8b, 0x53, 0x56, 0x57
-	});
-	bool getEncryptedAppTicket = IClientUser_GetEncryptedAppTicket.setup
-	(
-		Patterns::GetEncryptedAppTicket,
-		MemHlp::SigFollowMode::PrologueUpwards,
-		&prologue[0],
-		prologue.size(),
-		&hkClientUser_GetEncryptedAppTicket
-	);
+	IClientUser_GetSteamId = Patterns::IClientUser::GetSteamId.address;
 
 	bool succeeded =
-		LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, MemHlp::SigFollowMode::Relative, &hkLogSteamPipeCall)
-		&& ParseProtoBufResponse.setup(Patterns::ParseProtoBufResponse, MemHlp::SigFollowMode::Relative, &hkParseProtoBufResponse)
-		&& CAPIJob_RequestUserStats.setup(Patterns::CAPIJob_RequestUserStats, MemHlp::SigFollowMode::Relative, &hkCAPIJob_RequestUserStats)
-		&& IClientUser_BIsSubscribedApp.setup(Patterns::IsSubscribedApp, MemHlp::SigFollowMode::Relative, &hkClientUser_BIsSubscribedApp)
-		&& IClientUser_BLoggedOn.setup(Patterns::BLoggedOn, MemHlp::SigFollowMode::Relative, &hkClientUser_BLoggedOn)
-		&& IClientUser_CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkClientUser_CheckAppOwnership)
-		&& IClientUser_GetAPICallResult.setup(Patterns::GetAPICallResult, MemHlp::SigFollowMode::Relative, &hkClientUser_GetAPICallResult)
-		&& IClientUser_IsUserSubscribedAppInTicket.setup(Patterns::IsUserSubscribedAppInTicket, MemHlp::SigFollowMode::Relative, &hkClientUser_IsUserSubscribedAppInTicket)
-		&& IClientUser_GetSubscribedApps.setup(Patterns::GetSubscribedApps, MemHlp::SigFollowMode::Relative, &hkClientUser_GetSubscribedApps)
+		LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, &hkLogSteamPipeCall)
+		&& ParseProtoBufResponse.setup(Patterns::ParseProtoBufResponse, &hkParseProtoBufResponse)
+		&& CAPIJob_RequestUserStats.setup(Patterns::CAPIJob::RequestUserStats, &hkCAPIJob_RequestUserStats)
+		&& IClientUser_BIsSubscribedApp.setup(Patterns::IClientUser::BIsSubscribedApp, &hkClientUser_BIsSubscribedApp)
+		&& IClientUser_BLoggedOn.setup(Patterns::IClientUser::BLoggedOn, &hkClientUser_BLoggedOn)
+		&& IClientUser_CheckAppOwnership.setup(Patterns::CUser::CheckAppOwnership, &hkClientUser_CheckAppOwnership)
+		&& IClientUser_GetAPICallResult.setup(Patterns::IClientUser::GetAPICallResult, &hkClientUser_GetAPICallResult)
+		&& IClientUser_IsUserSubscribedAppInTicket.setup(Patterns::IClientUser::IsUserSubscribedAppInTicket, &hkClientUser_IsUserSubscribedAppInTicket)
+		&& IClientUser_GetSubscribedApps.setup(Patterns::CUser::GetSubscribedApps, &hkClientUser_GetSubscribedApps)
 
-		&& runningApp != LM_ADDRESS_BAD
-		&& stopPlayingBorrowedApp != LM_ADDRESS_BAD
-		&& IClientUser_GetSteamId != LM_ADDRESS_BAD
+		&& IClientApps_PipeLoop.setup(Patterns::IClientApps::PipeLoop, hkClientApps_PipeLoop)
+		&& IClientAppManager_PipeLoop.setup(Patterns::IClientAppManager::PipeLoop, hkClientAppManager_PipeLoop)
+		&& IClientRemoteStorage_PipeLoop.setup(Patterns::IClientRemoteStorage::PipeLoop, hkClientRemoteStorage_PipeLoop)
+		&& IClientUtils_PipeLoop.setup(Patterns::IClientUtils::PipeLoop, hkClientUtils_PipeLoop)
+		&& IClientUser_PipeLoop.setup(Patterns::IClientUser::PipeLoop, hkClientUser_PipeLoop)
 
-		&& clientApps_PipeLoop
-		&& clientAppManager_PipeLoop
-		&& clientRemoteStorage_PipeLoop
-		&& clientUtils_PipeLoop
-		&& clientUser_UpdateOwnershipInfo
-		&& clientUser_PipeLoop
-		&& requiresLegacyCDKey
-		&& getAppOwnershipTicketExtendedData
-		&& getEncryptedAppTicket;
+		&& IClientUser_BUpdateAppOwnershipInfo.setup(Patterns::IClientUser::BUpdateAppOwnershipInfo, hkClientUser_BUpdateOwnershipInfo)
+		&& IClientUser_RequiresLegacyCDKey.setup(Patterns::IClientUser::RequiresLegacyCDKey, hkClientUser_RequiresLegacyCDKey)
+		&& IClientUser_GetAppOwnershipTicketExtendedData.setup(Patterns::IClientUser::GetAppOwnershipTicketExtendedData, hkClientUser_GetAppOwnershipTicketExtendedData)
+		&& IClientUser_GetEncryptedAppTicket.setup(Patterns::CUser::GetEncryptedAppTicket, hkClientUser_GetEncryptedAppTicket);
 
-	if (!succeeded)
-	{
-		g_pLog->warn("Failed to find all patterns! Aborting...");
-		return false;
-	}
-
-	//TODO: Elegantly move into Hooks::place()
-	if (g_config.disableFamilyLock)
-	{
-		patchRetn(runningApp);
-		patchRetn(stopPlayingBorrowedApp);
-	}
-
-	//Might move this into main()
 	Hooks::place();
-	return true;
+	return succeeded;
 }
 
 void Hooks::place()
 {
+	if (g_config.disableFamilyLock)
+	{
+		patchRetn(Patterns::FamilyGroupRunningApp.address);
+		patchRetn(Patterns::StopPlayingBorrowedApp.address);
+	}
+
 	//Detours
 	LogSteamPipeCall.place();
 	ParseProtoBufResponse.place();

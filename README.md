@@ -139,7 +139,7 @@ Others:
 
 ## Hall of Shame aka Scammers, Leechers, etc
 
-🚨This list exists purely for educational and entertainmnent purposes!
+🚨This list exists purely for educational and entertainment purposes!
 Please do not seek out Projects listed here!
 If you decide to ignore the aforementioned warning you do so on your own risk!🚨
 

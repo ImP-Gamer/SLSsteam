@@ -20,11 +20,6 @@ CLog::~CLog()
 	{
 		ofstream.close();
 	}
-
-	for(auto& msg : msgCache)
-	{
-		free(msg);
-	}
 }
 
 //Dirty workaround for not being able to access g_config from __log

@@ -18,7 +18,7 @@ bool DLC::shouldUnlockDlc(uint32_t appId)
 		return false;
 	}
 
-	if (!g_pUser->checkAppOwnership(appId))
+	if (g_pUser->checkAppOwnership(appId))
 	{
 		return false;
 	}

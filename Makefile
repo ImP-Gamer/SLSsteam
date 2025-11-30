@@ -45,9 +45,9 @@ install:
 
 zips: rebuild
 	@mkdir -p zips
-	7z a -mx9 -m9=lzma2 "zips/SLSsteam $(DATE).7z" "bin/SLSsteam.so" "setup.sh" "tools/SLScheevo"
+	7z a -mx9 -m9=lzma2 "zips/SLSsteam $(DATE).7z" "bin/SLSsteam.so" "setup.sh" "tools/SLScheevo" "tools/ticket-grabber/bin/Release/net9.0/linux-x64/publish/ticket-grabber"
 	#Compatibility for Github issues
-	7z a -mx9 -m9=lzma "zips/SLSsteam $(DATE).zip" "bin/SLSsteam.so" "setup.sh" "tools/SLScheevo"
+	7z a -mx9 -m9=lzma "zips/SLSsteam $(DATE).zip" "bin/SLSsteam.so" "setup.sh" "tools/SLScheevo" "tools/ticket-grabber/bin/Release/net9.0/linux-x64/publish/ticket-grabber"
 
 zips-config:
 	7z a -mx9 -m9=lzma "zips/SLSsteam - SLSConfig $(DATE).zip" "$(HOME)/.config/SLSsteam/config.yaml"

@@ -245,7 +245,22 @@ namespace TicketGrabber
             //Current ticket sizes in SLSsteam
             storeTicket("ticket_", ticket.Ticket.ToList(), 0x400);
 
-            var slsTicket = encryptedTicket.Ticket.encrypted_ticket.ToList();
+            var slsTicket = new List<byte>(0x1000);
+            using (var ms = new MemoryStream())
+            {
+                using (var bw = new BinaryWriter(ms))
+                {
+                    bw.Write(encryptedTicket.Ticket.ticket_version_no);
+                    bw.Write(encryptedTicket.Ticket.crc_encryptedticket);
+                    bw.Write(encryptedTicket.Ticket.cb_encrypteduserdata);
+                    bw.Write(encryptedTicket.Ticket.cb_encrypted_appownershipticket);
+                    bw.Write(encryptedTicket.Ticket.encrypted_ticket);
+
+                    slsTicket = ms.ToArray().ToList();
+                }
+            }
+
+            //var slsTicket = encryptedTicket.Ticket.encrypted_ticket.ToList();
             slsTicket.InsertRange(0, BitConverter.GetBytes(slsTicket.Count));
             slsTicket.InsertRange(0, BitConverter.GetBytes(User.SteamID.AccountID));
             storeTicket("encryptedTicket_", slsTicket, 0x1008); //Add two extra uints for size + AccountID

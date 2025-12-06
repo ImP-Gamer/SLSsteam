@@ -78,8 +78,6 @@ namespace Hooks
 	typedef void(*IClientUser_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientUserStats_PipeLoop_t)(void*, void*, void*, void*);
 
-	typedef uint32_t(*CAPIJob_RequestUserStats_t)(void*);
-
 	typedef void(*CSteamEngine_Init_t)(void*);
 	typedef bool(*CSteamEngine_GetAPICallResult_t)(void*, uint32_t, uint32_t, void*, uint32_t, uint32_t, bool*);
 	typedef uint32_t(*CSteamEngine_SetAppIdForCurrentPipe_t)(void*, uint32_t, bool);
@@ -107,8 +105,6 @@ namespace Hooks
 	extern DetourHook<IClientUtils_PipeLoop_t> IClientUtils_PipeLoop;
 	extern DetourHook<IClientUser_PipeLoop_t> IClientUser_PipeLoop;
 	extern DetourHook<IClientUserStats_PipeLoop_t> IClientUserStats_PipeLoop;
-
-	extern DetourHook<CAPIJob_RequestUserStats_t> CAPIJob_RequestUserStats;
 
 	extern DetourHook<CSteamEngine_Init_t> CSteamEngine_Init;
 	extern DetourHook<CSteamEngine_GetAPICallResult_t> CSteamEngine_GetAPICallResult;

@@ -20,6 +20,7 @@
 #include "sdk/IClientUtils.hpp"
 #include "sdk/IClientUser.hpp"
 
+#include "feats/achievements.hpp"
 #include "feats/apps.hpp"
 #include "feats/dlc.hpp"
 #include "feats/fakeappid.hpp"
@@ -181,6 +182,8 @@ static void hkParseProtoBufResponse(void* pDst, void* pSrc)
 	const CProtoBufMsgBase* msg = reinterpret_cast<CProtoBufMsgBase*>(pDst);
 	g_pLog->debug("Received ProtoBufMsg of type %p\n", msg->type);
 
+	Achievements::recvMessage(msg);
+
 	switch(msg->type)
 	{
 		case EMSG_APPOWNERSHIPTICKET_RESPONSE:
@@ -191,27 +194,6 @@ static void hkParseProtoBufResponse(void* pDst, void* pSrc)
 
 			break;
 	}
-}
-
-static uint32_t hkCAPIJob_RequestUserStats(void* a0)
-{
-	const uint32_t ret = Hooks::CAPIJob_RequestUserStats.tramp.fn(a0);
-	g_pLog->once
-	(
-		"%s(%p) -> %u\n",
-
-		Hooks::CAPIJob_RequestUserStats.name.c_str(),
-		a0,
-		ret
-	);
-
-	//Blindly overwriting any responses might not be very clever, but I'll keep it like this for now
-	if (ret != ERESULT_OK)
-	{
-		return ERESULT_NO_CONNECTION;
-	}
-
-	return ret;
 }
 
 static void hkSteamEngine_Init(void* pSteamEngine)
@@ -940,8 +922,6 @@ namespace Hooks
 	DetourHook<CSteamEngine_GetAPICallResult_t> CSteamEngine_GetAPICallResult;
 	DetourHook<CSteamEngine_SetAppIdForCurrentPipe_t> CSteamEngine_SetAppIdForCurrentPipe;
 
-	DetourHook<CAPIJob_RequestUserStats_t> CAPIJob_RequestUserStats;
-
 	DetourHook<CUser_CheckAppOwnership_t> CUser_CheckAppOwnership;
 	DetourHook<CUser_GetEncryptedAppTicket_t> CUser_GetEncryptedAppTicket;
 	DetourHook<CUser_GetSubscribedApps_t> CUser_GetSubscribedApps;
@@ -977,8 +957,6 @@ bool Hooks::setup()
 	bool succeeded =
 		LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, &hkLogSteamPipeCall)
 		&& ParseProtoBufResponse.setup(Patterns::ParseProtoBufResponse, &hkParseProtoBufResponse)
-
-		&& CAPIJob_RequestUserStats.setup(Patterns::CAPIJob::RequestUserStats, &hkCAPIJob_RequestUserStats)
 
 		&& CUser_CheckAppOwnership.setup(Patterns::CUser::CheckAppOwnership, &hkUser_CheckAppOwnership)
 		&& CUser_GetSubscribedApps.setup(Patterns::CUser::GetSubscribedApps, &hkUser_GetSubscribedApps)
@@ -1020,8 +998,6 @@ void Hooks::place()
 	LogSteamPipeCall.place();
 	ParseProtoBufResponse.place();
 
-	CAPIJob_RequestUserStats.place();
-
 	CSteamEngine_Init.place();
 	CSteamEngine_GetAPICallResult.place();
 	CSteamEngine_SetAppIdForCurrentPipe.place();
@@ -1053,8 +1029,6 @@ void Hooks::remove()
 	//Detours
 	LogSteamPipeCall.remove();
 	ParseProtoBufResponse.remove();
-
-	CAPIJob_RequestUserStats.remove();
 
 	CSteamEngine_Init.remove();
 	CSteamEngine_GetAPICallResult.remove();

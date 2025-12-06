@@ -70,7 +70,8 @@ namespace Patterns
 	Pattern_t ParseProtoBufResponse
 	{
 		"ParseProtoBufResponse",
-		"E8 ? ? ? ? 58 8B 45 ? 8B 8D",
+		//"E8 ? ? ? ? 58 8B 45 ? 8B 8D", //Outer
+		"E8 ? ? ? ? 8B 5E ? C6 46 ? 01", //Inner
 		SigFollowMode::Relative
 	};
 

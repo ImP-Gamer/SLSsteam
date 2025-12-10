@@ -5,13 +5,14 @@
 #include "log.hpp"
 #include "memhlp.hpp"
 #include "patterns.hpp"
-#include "sdk/CSteamEngine.hpp"
+#include "sdk/protobufs/steammessages_clientserver.pb.h"
 #include "vftableinfo.hpp"
 
 #include "sdk/CAppOwnershipInfo.hpp"
 #include "sdk/CAppTicket.hpp"
 #include "sdk/CCallback.hpp"
 #include "sdk/CProtoBufMsgBase.hpp"
+#include "sdk/CSteamEngine.hpp"
 #include "sdk/CUser.hpp"
 #include "sdk/EResult.hpp"
 #include "sdk/IClientUser.hpp"
@@ -169,31 +170,80 @@ static void hkLogSteamPipeCall(const char* iface, const char* fn)
 	}
 }
 
-static void hkParseProtoBufResponse(void* pDst, void* pSrc)
+static void hkProtoBufMsgBase_New(CProtoBufMsgBase* pMsg, void* pSrc)
 {
-	Hooks::ParseProtoBufResponse.tramp.fn(pDst, pSrc);
+	Hooks::CProtoBufMsgBase_New.tramp.fn(pMsg, pSrc);
 
 	//Safety first
-	if (!pDst || !pSrc)
+	if (!pMsg || !pSrc)
 	{
 		return;
 	}
+	g_pLog->debug("Received ProtoBufMsg of type %u\n", pMsg->type);
 
-	const CProtoBufMsgBase* msg = reinterpret_cast<CProtoBufMsgBase*>(pDst);
-	g_pLog->debug("Received ProtoBufMsg of type %p\n", msg->type);
+	Achievements::recvMessage(pMsg);
 
-	Achievements::recvMessage(msg);
-
-	switch(msg->type)
+	switch(pMsg->type)
 	{
 		case EMSG_APPOWNERSHIPTICKET_RESPONSE:
-			const auto resp = reinterpret_cast<CMsgAppOwnershipTicketResponse*>(msg->body);
-			g_pLog->debug("AppOwnershipTicketResp %i -> %i\n", resp->appId, resp->result);
+			{
+				const auto resp = reinterpret_cast<CMsgAppOwnershipTicketResponse*>(pMsg->body);
+				g_pLog->debug("AppOwnershipTicketResp %i -> %i\n", resp->appId, resp->result);
 
-			Ticket::recvAppOwnershipTicketResponse(resp);
-
+				Ticket::recvAppOwnershipTicketResponse(resp);
+			}
 			break;
 	}
+}
+
+static uint32_t hkProtoBufMsgBase_Send(CProtoBufMsgBase* pMsg)
+{
+	switch(pMsg->type)
+	{
+		case EMSG_GAMESPLAYED:
+		case EMSG_GAMESPLAYED_NO_DATABLOB:
+		case EMSG_GAMESPLAYED_WITH_DATABLOB:
+			{
+				const auto body = reinterpret_cast<CMsgClientGamesPlayed*>(pMsg->body);
+
+				for(int i = 0; i < body->games_played_size(); i++)
+				{
+					auto game = body->mutable_games_played(i);
+
+					if (!game->game_id())
+					{
+						continue;
+					}
+
+					if (g_config.disableFamilyLock)
+					{
+						game->set_owner_id(1);
+					}
+
+					g_pLog->debug("Playing game %llu with flags %u\n", game->game_id(), game->game_flags());
+				}
+
+				const int games = body->games_played_size();
+				const auto statusApp = games ? g_config.unownedStatus : g_config.idleStatus;
+				if (statusApp.appId)
+				{
+					//pMsg->send(); //Send original message first, otherwise Valve's backend might fuck up the order
+					//Only happens in owned games for some reason, so idk
+
+					auto game = body->add_games_played();
+					game->set_game_id(statusApp.appId);
+					game->set_game_extra_info(statusApp.title);
+					game->set_game_flags(0);
+					//game->set_game_flags(EGAMEFLAG_MULTIPLAYER);
+				}
+			}
+			break;
+	}
+
+	const uint32_t ret = Hooks::CProtoBufMsgBase_Send.tramp.fn(pMsg);
+	g_pLog->debug("Sending ProtoBufMsg of type %u\n", pMsg->type);
+
+	return ret;
 }
 
 static void hkSteamEngine_Init(void* pSteamEngine)
@@ -908,7 +958,6 @@ namespace Hooks
 {
 	//TODO: Lazily intialize in a different way, or preload glibc
 	DetourHook<LogSteamPipeCall_t> LogSteamPipeCall;
-	DetourHook<ParseProtoBufResponse_t> ParseProtoBufResponse;
 
 	DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop;
 	DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop;
@@ -917,6 +966,9 @@ namespace Hooks
 	DetourHook<IClientUtils_PipeLoop_t> IClientUtils_PipeLoop;
 	DetourHook<IClientUser_PipeLoop_t> IClientUser_PipeLoop;
 	DetourHook<IClientUserStats_PipeLoop_t> IClientUserStats_PipeLoop;
+
+	DetourHook<CProtoBufMsgBase_New_t> CProtoBufMsgBase_New;
+	DetourHook<CProtoBufMsgBase_Send_t> CProtoBufMsgBase_Send;
 
 	DetourHook<CSteamEngine_Init_t> CSteamEngine_Init;
 	DetourHook<CSteamEngine_GetAPICallResult_t> CSteamEngine_GetAPICallResult;
@@ -956,7 +1008,9 @@ bool Hooks::setup()
 
 	bool succeeded =
 		LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, &hkLogSteamPipeCall)
-		&& ParseProtoBufResponse.setup(Patterns::ParseProtoBufResponse, &hkParseProtoBufResponse)
+
+		&& CProtoBufMsgBase_New.setup(Patterns::CProtoBufMsgBase::New, &hkProtoBufMsgBase_New)
+		&& CProtoBufMsgBase_Send.setup(Patterns::CProtoBufMsgBase::Send, &hkProtoBufMsgBase_Send)
 
 		&& CUser_CheckAppOwnership.setup(Patterns::CUser::CheckAppOwnership, &hkUser_CheckAppOwnership)
 		&& CUser_GetSubscribedApps.setup(Patterns::CUser::GetSubscribedApps, &hkUser_GetSubscribedApps)
@@ -996,7 +1050,9 @@ void Hooks::place()
 
 	//Detours
 	LogSteamPipeCall.place();
-	ParseProtoBufResponse.place();
+
+	CProtoBufMsgBase_New.place();
+	CProtoBufMsgBase_Send.place();
 
 	CSteamEngine_Init.place();
 	CSteamEngine_GetAPICallResult.place();
@@ -1028,7 +1084,9 @@ void Hooks::remove()
 {
 	//Detours
 	LogSteamPipeCall.remove();
-	ParseProtoBufResponse.remove();
+
+	CProtoBufMsgBase_New.remove();
+	CProtoBufMsgBase_Send.remove();
 
 	CSteamEngine_Init.remove();
 	CSteamEngine_GetAPICallResult.remove();

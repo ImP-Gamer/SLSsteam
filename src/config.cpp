@@ -79,6 +79,14 @@ static const char* defaultConfig =
 "#Logs all calls to Steamworks (this makes the logfile huge! Only useful for debugging/analyzing\n"
 "ExtendedLogging: no";
 
+void CConfig::FakeGame_t::sanitizeTitle()
+{
+	if (title.size() > 15)
+	{
+		title = title.substr(0, 14);
+	}
+}
+
 std::string CConfig::getDir()
 {
 	char pathBuf[255];
@@ -209,6 +217,46 @@ bool CConfig::loadSettings()
 	else
 	{
 		g_pLog->warn("Missing FakeAppIds entry in config!");
+	}
+
+	//Do not warn for these (yet?)
+	const auto idleStatusNode = node["IdleStatus"];
+	if (idleStatusNode)
+	{
+		try
+		{
+			idleStatus = FakeGame_t
+			{
+				idleStatusNode["AppId"].as<uint32_t>(),
+				idleStatusNode["Title"].as<std::string>()
+			};
+
+			g_pLog->debug("Idle status %s with AppId %u\n", idleStatus.title.c_str(), idleStatus.appId);
+			idleStatus.sanitizeTitle();
+		}
+		catch(...)
+		{
+			g_pLog->warn("Failed to parse IdleStatus!");
+		}
+	}
+	const auto unownedStatusNode = node["UnownedStatus"];
+	if (unownedStatusNode)
+	{
+		try
+		{
+			unownedStatus = FakeGame_t
+			{
+				unownedStatusNode["AppId"].as<uint32_t>(),
+				unownedStatusNode["Title"].as<std::string>()
+			};
+
+			g_pLog->debug("Unowned status %s with AppId %u\n", unownedStatus.title.c_str(), unownedStatus.appId);
+			unownedStatus.sanitizeTitle();
+		}
+		catch(...)
+		{
+			g_pLog->warn("Failed to parse UnownedStatus");
+		}
 	}
 
 	const auto dlcDataNode = node["DlcData"];

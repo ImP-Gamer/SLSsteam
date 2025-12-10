@@ -15,6 +15,14 @@
 
 class CConfig {
 public:
+	struct FakeGame_t
+	{
+		uint32_t appId = 0;
+		std::string title;
+
+		void sanitizeTitle();
+	};
+
 	class CDlcData
 	{
 	public:
@@ -29,6 +37,8 @@ public:
 	std::unordered_map<uint32_t, CDlcData> dlcData;
 	std::unordered_set<uint32_t> fakeOffline;
 	std::unordered_map<uint32_t, uint32_t> fakeAppIds;
+	FakeGame_t idleStatus;
+	FakeGame_t unownedStatus;
 
 	//SteamId, AppIds tuple
 	std::unordered_map<uint32_t, std::unordered_set<uint32_t>> denuvoGames;

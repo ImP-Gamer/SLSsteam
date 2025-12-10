@@ -9,11 +9,19 @@
 
 enum EMsgType : uint16_t
 {
-	EMSG_REQUEST_USERSTATS_RESPONSE = 0x333,
-	EMSG_APPOWNERSHIPTICKET_RESPONSE = 0x35a,
-	EMSG_ENCRYPTEDAPPTICKET_RESPONSE = 0x1597
+	EMSG_GAMESPLAYED_NO_DATABLOB = 715,
+	EMSG_GAMESPLAYED = 742,
+	EMSG_REQUEST_USERSTATS_RESPONSE = 819,
+	EMSG_APPOWNERSHIPTICKET_RESPONSE = 858,
+	EMSG_GAMESPLAYED_WITH_DATABLOB = 5410,
 };
 
+enum EGameFlags
+{
+	//1 << 0 is set for spacewar, not other mp games. idk
+	EGAMEFLAG_JOINABLE = 1 << 1, //Or in Server, etc
+	EGAMEFLAG_MULTIPLAYER = 1 << 13,
+};
 
 class CProtoBufMsgBase
 {
@@ -23,6 +31,8 @@ public:
 	char __pad_0x18[0xA];	//0x16
 	void* body;				//0x20
 	char __pad_0x24[0x8];	//0x24
+	
+	uint32_t send();
 }; //0x2C
 
 

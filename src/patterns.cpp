@@ -67,12 +67,21 @@ namespace Patterns
 		"E8 ? ? ? ? 83 C4 10 85 FF 74 ? 8B 07 83 EC 04 FF B5 ? ? ? ? FF B5 ? ? ? ? 57 FF 10 83 C4 10 8D 45 ? 83 EC 04 89 F3 6A 04 50 FF 75",
 		SigFollowMode::Relative
 	};
-	Pattern_t ParseProtoBufResponse
+
+	namespace CProtoBufMsgBase
 	{
-		"ParseProtoBufResponse",
-		//"E8 ? ? ? ? 58 8B 45 ? 8B 8D", //Outer
-		"E8 ? ? ? ? 8B 5E ? C6 46 ? 01", //Inner
-		SigFollowMode::Relative
+		Pattern_t New
+		{
+			"CProtoBufMsgBase::New",
+			"E8 ? ? ? ? 58 8B 45 ? 8B 8D",
+			SigFollowMode::Relative
+		};
+		Pattern_t Send
+		{
+			"CProtoBufMsgBase::Send",
+			"E8 ? ? ? ? 59 5A 50 56 E8 ? ? ? ? 83 C4 0C",
+			SigFollowMode::Relative
+		};
 	};
 
 	namespace CSteamEngine

@@ -4,11 +4,12 @@
 
 #include "libmem/libmem.h"
 
-#include "sdk/CAppOwnershipInfo.hpp"
-
 #include <cstddef>
 #include <memory>
 #include <string>
+
+class CAppOwnershipInfo;
+class CProtoBufMsgBase;
 
 template<typename T>
 union FunctionUnion_t
@@ -68,7 +69,6 @@ public:
 namespace Hooks
 {
 	typedef void(*LogSteamPipeCall_t)(const char*, const char*);
-	typedef void(*ParseProtoBufResponse_t)(void*, void*);
 
 	typedef void(*IClientAppManager_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientApps_PipeLoop_t)(void*, void*, void*, void*);
@@ -77,6 +77,9 @@ namespace Hooks
 	typedef void(*IClientUtils_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientUser_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientUserStats_PipeLoop_t)(void*, void*, void*, void*);
+
+	typedef void(*CProtoBufMsgBase_New_t)(CProtoBufMsgBase*, void*);
+	typedef uint32_t(*CProtoBufMsgBase_Send_t)(CProtoBufMsgBase*);
 
 	typedef void(*CSteamEngine_Init_t)(void*);
 	typedef bool(*CSteamEngine_GetAPICallResult_t)(void*, uint32_t, uint32_t, void*, uint32_t, uint32_t, bool*);
@@ -96,7 +99,9 @@ namespace Hooks
 	typedef bool(*IClientUtils_GetOfflineMode_t)(void*);
 
 	extern DetourHook<LogSteamPipeCall_t> LogSteamPipeCall;
-	extern DetourHook<ParseProtoBufResponse_t> ParseProtoBufResponse;
+
+	extern DetourHook<CProtoBufMsgBase_New_t> CProtoBufMsgBase_New;
+	extern DetourHook<CProtoBufMsgBase_Send_t> CProtoBufMsgBase_Send;
 
 	extern DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop;
 	extern DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop;

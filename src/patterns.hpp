@@ -31,7 +31,12 @@ namespace Patterns
 	extern Pattern_t StopPlayingBorrowedApp;
 
 	extern Pattern_t LogSteamPipeCall;
-	extern Pattern_t ParseProtoBufResponse;
+
+	namespace CProtoBufMsgBase
+	{
+		extern Pattern_t New;
+		extern Pattern_t Send;
+	};
 
 	namespace CSteamEngine
 	{

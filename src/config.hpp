@@ -53,6 +53,7 @@ public:
 	bool notifications;
 	bool warnHashMissmatch;
 	bool notifyInit;
+	bool api;
 	unsigned int logLevel;
 	bool extendedLogging;
 

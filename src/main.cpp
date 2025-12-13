@@ -1,3 +1,4 @@
+#include "api.hpp"
 #include "config.hpp"
 #include "globals.hpp"
 #include "hooks.hpp"
@@ -188,6 +189,8 @@ static void load()
 		unload();
 		return;
 	}
+
+	SLSAPI::init();
 
 	if (g_config.notifyInit)
 	{

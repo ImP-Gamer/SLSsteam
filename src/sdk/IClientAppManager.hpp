@@ -30,7 +30,7 @@ enum EAppState : int
 class IClientAppManager
 {
 public:
-	bool installApp(uint32_t appId);
+	bool installApp(uint32_t appId, uint32_t librarIndex);
 	EAppState getAppInstallState(uint32_t appId);
 };
 

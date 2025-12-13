@@ -118,6 +118,7 @@ bool CConfig::loadSettings()
 	notifications = getSetting<bool>(node, "Notifications", true);
 	warnHashMissmatch = getSetting<bool>(node, "WarnHashMissmatch", false);
 	notifyInit = getSetting<bool>(node, "NotifyInit", true);
+	api = getSetting<bool>(node, "API", true);
 	extendedLogging = getSetting<bool>(node, "ExtendedLogging", false);
 	logLevel = getSetting<unsigned int>(node, "LogLevel", 2);
 	blockEncryptedAppTickets = getSetting<bool>(node, "BlockEncryptedAppTickets", false);
@@ -131,6 +132,7 @@ bool CConfig::loadSettings()
 	g_pLog->info("Notifications: %i\n", notifications);
 	g_pLog->info("WarnHashMissmatch: %i\n", warnHashMissmatch);
 	g_pLog->info("NotifyInit: %i\n", notifyInit);
+	g_pLog->info("API: %i\n", api);
 	g_pLog->info("ExtendedLogging: %i\n", extendedLogging);
 	g_pLog->info("LogLevel: %i\n", logLevel);
 	g_pLog->info("BlockEncryptedAppTickets: %i\n", blockEncryptedAppTickets);

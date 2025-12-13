@@ -3,4 +3,5 @@
 .github
 bin
 obj
+src/config_default.hpp
 zip

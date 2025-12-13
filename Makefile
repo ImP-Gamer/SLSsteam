@@ -33,6 +33,11 @@ bin/SLSsteam.so: $(objs) $(libs)
 	$(CXX) $(CXXFLAGS) $^ -o bin/SLSsteam.so $(LDFLAGS)
 
 -include $(deps)
+obj/config.o: src/config.cpp res/config.yaml
+	$(shell ./embed-config.sh)
+	$(CXX) $(CXXFLAGS) -isysteminclude -MMD -MP -c $< -o $@
+
+-include $(deps)
 obj/%.o : src/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -isysteminclude -MMD -MP -c $< -o $@
@@ -49,7 +54,8 @@ zips: rebuild
 		"zips/SLSsteam $(DATE).7z" \
 		"bin/SLSsteam.so" \
 		"setup.sh" \
-		"docs" \
+		"docs/LICENSE" \
+		"res/config.yaml" \
 		"tools/SLScheevo" #\
 		#"tools/ticket-grabber/bin/Release/net9.0/linux-x64/publish/ticket-grabber"
 
@@ -58,7 +64,8 @@ zips: rebuild
 		"zips/SLSsteam $(DATE).zip" \
 		"bin/SLSsteam.so" \
 		"setup.sh" \
-		"docs" \
+		"docs/LICENSE" \
+		"res/config.yaml" \
 		"tools/SLScheevo" #\
 		#"tools/ticket-grabber/bin/Release/net9.0/linux-x64/publish/ticket-grabber"
 

@@ -1,4 +1,5 @@
-﻿using SteamKit2;
+﻿using ProtoBuf;
+using SteamKit2;
 using SteamKit2.Internal;
 using SteamKit2.Authentication;
 
@@ -79,21 +80,21 @@ namespace TicketGrabber
             File.WriteAllText(guardDataFile, guardData);
         }
 
-        protected void storeTicket(string prefix, List<byte> ticket, uint maxLen)
+        protected void storeTicket(string prefix, byte[] ticket)
         {
             if (!Directory.Exists(TicketDir))
             {
                 Directory.CreateDirectory(TicketDir);
             }
 
-            //Shitty code to convert. Can't be arsed to improve this right now
-            while (ticket.Count < maxLen)
-            {
-                ticket.Add(0);
-            }
+            var b64Ticket = System.Convert.ToBase64String(ticket);
 
-            var filePath = Path.Combine(TicketDir, $"{prefix}{TargetAppId}");
-            File.WriteAllBytes(filePath, ticket.ToArray());
+            var filePath = Path.Combine(TicketDir, $"{prefix}_{TargetAppId}.yaml");
+            File.WriteAllLines(filePath,
+            [
+                $"steamId: {User.SteamID.AccountID}",
+                $"{prefix}: {b64Ticket}"
+            ]);
             Console.WriteLine($"Saved {filePath}");
         }
 
@@ -243,27 +244,19 @@ namespace TicketGrabber
             Console.WriteLine("EncryptedAppTicket received!");
 
             //Current ticket sizes in SLSsteam
-            storeTicket("ticket_", ticket.Ticket.ToList(), 0x400);
+            storeTicket("ticket", ticket.Ticket);
 
-            var slsTicket = new List<byte>(0x1000);
             using (var ms = new MemoryStream())
             {
-                using (var bw = new BinaryWriter(ms))
-                {
-                    bw.Write(encryptedTicket.Ticket.ticket_version_no);
-                    bw.Write(encryptedTicket.Ticket.crc_encryptedticket);
-                    bw.Write(encryptedTicket.Ticket.cb_encrypteduserdata);
-                    bw.Write(encryptedTicket.Ticket.cb_encrypted_appownershipticket);
-                    bw.Write(encryptedTicket.Ticket.encrypted_ticket);
+                //Shitty workaround for "Proto contract not found""
+                var tc = new CMsgClientRequestEncryptedAppTicketResponse();
+                tc.app_id = encryptedTicket.AppID;
+                tc.eresult = (int)encryptedTicket.Result;
+                tc.encrypted_app_ticket = encryptedTicket.Ticket;
 
-                    slsTicket = ms.ToArray().ToList();
-                }
+                Serializer.Serialize(ms, tc);
+                storeTicket("encryptedTicket", ms.ToArray());
             }
-
-            //var slsTicket = encryptedTicket.Ticket.encrypted_ticket.ToList();
-            slsTicket.InsertRange(0, BitConverter.GetBytes(slsTicket.Count));
-            slsTicket.InsertRange(0, BitConverter.GetBytes(User.SteamID.AccountID));
-            storeTicket("encryptedTicket_", slsTicket, 0x1008); //Add two extra uints for size + AccountID
 
             finished = true;
         }

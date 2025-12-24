@@ -72,6 +72,7 @@ namespace Hooks
 
 	typedef void(*IClientAppManager_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientApps_PipeLoop_t)(void*, void*, void*, void*);
+	typedef void(*IClientControllerSerialized_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientRemoteStorage_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientUGC_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientUtils_PipeLoop_t)(void*, void*, void*, void*);
@@ -104,6 +105,7 @@ namespace Hooks
 
 	extern DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop;
 	extern DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop;
+	extern DetourHook<IClientControllerSerialized_PipeLoop_t> IClientControllerSerialized_PipeLoop;
 	extern DetourHook<IClientRemoteStorage_PipeLoop_t> IClientRemoteStorage_PipeLoop;
 	extern DetourHook<IClientUGC_PipeLoop_t> IClientUGC_PipeLoop;
 	extern DetourHook<IClientUtils_PipeLoop_t> IClientUtils_PipeLoop;

@@ -66,6 +66,11 @@ namespace Patterns
 		extern Pattern_t PipeLoop;
 	}
 
+	namespace IClientControllerSerialized
+	{
+		extern Pattern_t PipeLoop;
+	}
+
 	namespace IClientRemoteStorage
 	{
 		extern Pattern_t PipeLoop;

@@ -165,6 +165,17 @@ namespace Patterns
 		};
 	}
 
+	namespace IClientControllerSerialized
+	{
+		Pattern_t PipeLoop
+		{
+			"IClientControllerSerialized::PipeLoop",
+			"FF B5 ? ? ? ? 50 8D 83 ? ? ? ? 68 58 15 00 00",
+			SigFollowMode::PrologueUpwards,
+			std::vector<uint8_t> { 0x56, 0x57, 0xe5, 0x89, 0x55 }
+		};
+	}
+
 	namespace IClientRemoteStorage
 	{
 		Pattern_t PipeLoop

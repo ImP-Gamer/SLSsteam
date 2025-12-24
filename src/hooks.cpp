@@ -471,6 +471,13 @@ static void hkClientApps_PipeLoop(void* pClientApps, void* a1, void* a2, void* a
 	Hooks::IClientApps_PipeLoop.tramp.fn(pClientApps, a1, a2, a3);
 }
 
+static void hkClientControllerSerialized_PipeLoop(void* pClientControllerSerialized, void* a1, void* a2, void* a3)
+{
+	FakeAppIds::pipeLoop(false);
+	Hooks::IClientControllerSerialized_PipeLoop.tramp.fn(pClientControllerSerialized, a1, a2, a3);
+	FakeAppIds::pipeLoop(true);
+}
+
 static bool hkClientRemoteStorage_IsCloudEnabledForApp(void* pClientRemoteStorage, uint32_t appId)
 {
 	const bool enabled = Hooks::IClientRemoteStorage_IsCloudEnabledForApp.originalFn.fn(pClientRemoteStorage, appId);
@@ -873,6 +880,7 @@ namespace Hooks
 
 	DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop;
 	DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop;
+	DetourHook<IClientControllerSerialized_PipeLoop_t> IClientControllerSerialized_PipeLoop;
 	DetourHook<IClientRemoteStorage_PipeLoop_t> IClientRemoteStorage_PipeLoop;
 	DetourHook<IClientUGC_PipeLoop_t> IClientUGC_PipeLoop;
 	DetourHook<IClientUtils_PipeLoop_t> IClientUtils_PipeLoop;
@@ -932,6 +940,7 @@ bool Hooks::setup()
 
 		&& IClientApps_PipeLoop.setup(Patterns::IClientApps::PipeLoop, hkClientApps_PipeLoop)
 		&& IClientAppManager_PipeLoop.setup(Patterns::IClientAppManager::PipeLoop, hkClientAppManager_PipeLoop)
+		&& IClientControllerSerialized_PipeLoop.setup(Patterns::IClientControllerSerialized::PipeLoop, hkClientControllerSerialized_PipeLoop)
 		&& IClientRemoteStorage_PipeLoop.setup(Patterns::IClientRemoteStorage::PipeLoop, hkClientRemoteStorage_PipeLoop)
 		&& IClientUGC_PipeLoop.setup(Patterns::IClientUGC::PipeLoop, hkClientUGC_PipeLoop)
 		&& IClientUtils_PipeLoop.setup(Patterns::IClientUtils::PipeLoop, hkClientUtils_PipeLoop)

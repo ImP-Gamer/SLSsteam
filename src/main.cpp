@@ -4,6 +4,7 @@
 #include "hooks.hpp"
 #include "log.hpp"
 #include "patterns.hpp"
+#include "update.hpp"
 #include "utils.hpp"
 
 #include "libmem/libmem.h"
@@ -21,8 +22,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-
-static const char* EXPECTED_STEAMCLIENT_HASH = "8cd7cd0cf872396c47371c23bbd805d4e5aa8088a9d5b1518f60c24e6f3c444d";
 
 static bool cleanEnvVar(const char* varName)
 {
@@ -53,36 +52,6 @@ static bool cleanEnvVar(const char* varName)
 	//g_pLog->debug("Set %s to %s\n", varName, newEnv.c_str());
 
 	return true;
-}
-
-static bool verifySteamClientHash()
-{
-
-	auto path = std::filesystem::path(g_modSteamClient.path);
-	auto dir = path.parent_path();
-
-	g_pLog->info
-	(
-		"steamclient.so loaded from %s/%s at %p to %p\n",
-		dir.filename().c_str(),
-		path.filename().c_str(),
-		g_modSteamClient.base,
-		g_modSteamClient.end
-	);
-
-	try
-	{
-		std::string sha256 = Utils::getFileSHA256(path.c_str());
-		g_pLog->info("steamclient.so hash is %s\n", sha256.c_str());
-
-		//TODO: Research if there's a better way to compare const char* to std::string
-		return strcmp(sha256.c_str(), EXPECTED_STEAMCLIENT_HASH) == 0;
-	}
-	catch(std::runtime_error& err)
-	{
-		g_pLog->debug("Unable to read steamclient.so hash!\n");
-		return false;
-	}
 }
 
 //Looking at /proc/self/maps it seems like this isn't needed for processes that aren't steam
@@ -148,6 +117,8 @@ static void setup()
 	ldLibPath.append("/usr/lib:/usr/lib32");
 	setenv("LD_LIBRARY_PATH", ldLibPath.c_str(), true);
 
+	Updater::init();
+
 	setupSuccess = true;
 }
 
@@ -165,7 +136,19 @@ static void load()
 		return;
 	}
 
-	if (!verifySteamClientHash())
+	auto path = std::filesystem::path(g_modSteamClient.path);
+	auto dir = path.parent_path();
+
+	g_pLog->info
+	(
+		"steamclient.so loaded from %s/%s at %p to %p\n",
+		dir.filename().c_str(),
+		path.filename().c_str(),
+		g_modSteamClient.base,
+		g_modSteamClient.end
+	);
+
+	if (!Updater::verifySafeModeHash())
 	{
 		if (g_config.safeMode.get())
 		{

@@ -126,18 +126,15 @@ bool Updater::verifySafeModeHash()
 		std::string sha256 = Utils::getFileSHA256(path.c_str());
 		g_pLog->info("steamclient.so hash is %s\n", sha256.c_str());
 
-		for (const auto& safeHash : clientHashMap)
+		if (!clientHashMap.contains(VERSION))
 		{
-			g_pLog->debug("SafeHash %llu -> %llu\n", safeHash.first, VERSION);
-			if (VERSION > safeHash.first)
-			{
-				continue;
-			}
+			return false;
+		}
 
-			if (safeHash.second.contains(sha256))
-			{
-				return true;
-			}
+		const auto& safeHashes = clientHashMap[VERSION];
+		if (safeHashes.contains(sha256))
+		{
+			return true;
 		}
 
 		return false;

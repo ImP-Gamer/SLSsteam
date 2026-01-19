@@ -821,6 +821,12 @@ static void hkClientUserStats_PipeLoop(void* pClientUserStats, void* a1, void* a
 	FakeAppIds::pipeLoop(true);
 }
 
+static void hkSteamMatchmakingPingResponse_ServerResponded(void* pSteamMatchingPingResponse, gameserverdetails_t* details)
+{
+	FakeAppIds::pingResponse(details);
+	Hooks::ISteamMatchmakingPingResponse_ServerResponded.tramp.fn(pSteamMatchingPingResponse, details);
+}
+
 static void patchRetn(lm_address_t address)
 {
 	constexpr lm_byte_t retn = 0xC3;
@@ -987,6 +993,12 @@ namespace Hooks
 	VFTHook<IClientUtils_GetAppId_t> IClientUtils_GetAppId("IClientUtils::GetAppId");
 	VFTHook<IClientUtils_GetOfflineMode_t> IClientUtils_GetOfflineMode("IClientUtils::GetOfflineMode");
 
+
+	//steamui.so
+	DetourHook<ISteamMatchmakingPingResponse_ServerResponded_t> ISteamMatchmakingPingResponse_ServerResponded;
+
+
+	//Naked
 	lm_address_t IClientUser_GetSteamId;
 }
 
@@ -1026,7 +1038,9 @@ bool Hooks::setup()
 		&& IClientUser_BUpdateAppOwnershipTicket.setup(Patterns::IClientUser::BUpdateAppOwnershipTicket, hkClientUser_BUpdateOwnershipTicket)
 		&& IClientUser_GetAppOwnershipTicketExtendedData.setup(Patterns::IClientUser::GetAppOwnershipTicketExtendedData, hkClientUser_GetAppOwnershipTicketExtendedData)
 		&& IClientUser_IsUserSubscribedAppInTicket.setup(Patterns::IClientUser::IsUserSubscribedAppInTicket, &hkClientUser_IsUserSubscribedAppInTicket)
-		&& IClientUser_RequiresLegacyCDKey.setup(Patterns::IClientUser::RequiresLegacyCDKey, hkClientUser_RequiresLegacyCDKey);
+		&& IClientUser_RequiresLegacyCDKey.setup(Patterns::IClientUser::RequiresLegacyCDKey, hkClientUser_RequiresLegacyCDKey)
+
+		&& ISteamMatchmakingPingResponse_ServerResponded.setup(Patterns::ISteamMatchmakingPingResponse::ServerResponded, hkSteamMatchmakingPingResponse_ServerResponded);
 
 	Hooks::place();
 	//This is unnecessary but I'll keep this for now in case I wanna improve error checks
@@ -1073,6 +1087,8 @@ void Hooks::place()
 	IClientUser_IsUserSubscribedAppInTicket.place();
 	IClientUser_RequiresLegacyCDKey.place();
 
+	ISteamMatchmakingPingResponse_ServerResponded.place();
+
 	createAndPlaceSteamIdHook();
 }
 
@@ -1109,6 +1125,8 @@ void Hooks::remove()
 	IClientUser_GetAppOwnershipTicketExtendedData.remove();
 	IClientUser_IsUserSubscribedAppInTicket.remove();
 	IClientUser_RequiresLegacyCDKey.remove();
+
+	ISteamMatchmakingPingResponse_ServerResponded.remove();
 
 	//VFT Hooks
 	IClientAppManager_BIsDlcEnabled.remove();

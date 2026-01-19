@@ -17,9 +17,10 @@ public:
 	std::vector<uint8_t> prologue;
 
 	lm_address_t address;
+	lm_module_t* module;
 
-	Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode);
-	Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode, std::vector<uint8_t> prologue);
+	Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode, lm_module_t* module = nullptr);
+	Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode, std::vector<uint8_t> prologue, lm_module_t* module = nullptr);
 	//~CPattern();
 
 	bool find();
@@ -102,6 +103,12 @@ namespace Patterns
 		extern Pattern_t Offset_GetPipeIndex;
 	}
 
+
+	//steamui.so
+	namespace ISteamMatchmakingPingResponse
+	{
+		extern Pattern_t ServerResponded;
+	}
 
 	extern std::vector<Pattern_t*> patterns;
 	bool init();

@@ -10,6 +10,7 @@
 uint32_t FakeAppIds::launchedApp = 0;
 std::unordered_map<uint32_t, uint32_t> FakeAppIds::fakeAppIdMap = std::unordered_map<uint32_t, uint32_t>();
 std::unordered_map<uint32_t, uint32_t> FakeAppIds::fakeAppIdMapServer = std::unordered_map<uint32_t, uint32_t>();
+std::unordered_map<uint64_t, uint32_t> FakeAppIds::fakeAppIdMapPings = std::unordered_map<uint64_t, uint32_t>();
 
 uint32_t FakeAppIds::getFakeAppId(uint32_t appId)
 {
@@ -116,8 +117,12 @@ void FakeAppIds::getServerDetails(uint32_t handle, gameserverdetails_t& details)
 		return;
 	}
 
-	details.appId = fakeAppIdMapServer[handle];
-	g_pLog->debug("Changing appId back to %u\n", fakeAppIdMapServer[handle]);
+	const uint32_t realAppId = fakeAppIdMapServer[handle];
+
+	fakeAppIdMapPings[*reinterpret_cast<uint64_t*>(&details.address)] = realAppId;
+	details.appId = realAppId;
+
+	g_pLog->debug("Changing appId back to %u\n", realAppId);
 }
 
 uint32_t FakeAppIds::requestInternetServerList(uint32_t appId)
@@ -130,4 +135,20 @@ uint32_t FakeAppIds::requestInternetServerList(uint32_t appId)
 
 	g_pLog->debug("Replacing %u with %u\n", appId, fake);
 	return fake;
+}
+
+void FakeAppIds::pingResponse(gameserverdetails_t *details)
+{
+	if (!details)
+	{
+		return;
+	}
+
+	const uint64_t ip = *reinterpret_cast<uint64_t*>(&details->address);
+	if (!fakeAppIdMapPings.contains(ip))
+	{
+		return;
+	}
+
+	details->appId = fakeAppIdMapPings[ip];
 }

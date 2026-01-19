@@ -9,25 +9,26 @@
 #include <memory>
 
 
-Pattern_t::Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode)
+Pattern_t::Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode, lm_module_t* module)
 	:
-	Pattern_t(name, pattern, followMode, std::vector<uint8_t>())
+	Pattern_t(name, pattern, followMode, std::vector<uint8_t>(), module)
 {
 }
 
-Pattern_t::Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode, std::vector<uint8_t> prologue)
+Pattern_t::Pattern_t(const char* name, const char* pattern, MemHlp::SigFollowMode followMode, std::vector<uint8_t> prologue, lm_module_t* module)
 	:
 	name(name),
 	pattern(pattern),
 	followMode(followMode),
-	prologue(prologue)
+	prologue(prologue),
+	module(module)
 {
 	Patterns::patterns.emplace_back(this);
 }
 
 bool Pattern_t::find()
 {
-	address = MemHlp::searchSignature(name.c_str(), pattern.c_str(), g_modSteamClient, followMode, &prologue[0], prologue.size());
+	address = MemHlp::searchSignature(name.c_str(), pattern.c_str(), module ? *module : g_modSteamClient , followMode, &prologue[0], prologue.size());
 	return address != LM_ADDRESS_BAD;
 }
 
@@ -284,6 +285,19 @@ namespace Patterns
 			"IClientUtils::m_PipeIndex",
 			"8B 91 ? ? ? ? 83 F8 FF 74 ? 8B 89 ? ? ? ? EB ? ? ? ? 8B 00 83 F8 FF 74 ? 8D 04 ? 8D 04 ? 3B 50",
 			SigFollowMode::None,
+		};
+	}
+
+	//steamui.so
+	namespace ISteamMatchmakingPingResponse
+	{
+		Pattern_t ServerResponded
+		{
+			"ISteamMatchmakingPingResponse::ServerResponded",
+			"8B 85 ? ? ? ? 8B 40 ? 85 C0 0F 84 ? ? ? ? 39 46",
+			SigFollowMode::PrologueUpwards,
+			std::vector<uint8_t> { 0x57, 0xe5, 0x89, 0x55 },
+			&g_modSteamUI
 		};
 	}
 

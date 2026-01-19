@@ -148,6 +148,11 @@ static void load()
 		unload();
 		return;
 	}
+	if (!LM_FindModule("steamui.so", &g_modSteamUI))
+	{
+		unload();
+		return;
+	}
 
 	auto path = std::filesystem::path(g_modSteamClient.path);
 	auto dir = path.parent_path();
@@ -160,6 +165,13 @@ static void load()
 		g_modSteamClient.base,
 		g_modSteamClient.end
 	);
+	g_pLog->info
+	(
+		"steamui.so loaded at %p to %p\n",
+		g_modSteamUI.base,
+		g_modSteamUI.end
+	);
+
 
 	if (!Updater::verifySafeModeHash())
 	{
@@ -213,7 +225,7 @@ unsigned int la_version(unsigned int)
 
 unsigned int la_objopen(struct link_map *map, __attribute__((unused)) Lmid_t lmid, __attribute__((unused)) uintptr_t *cookie)
 {
-	if (std::string(map->l_name).ends_with("/steamclient.so"))
+	if (std::string(map->l_name).ends_with("/steamclient.so") || std::string(map->l_name).ends_with("/steamui.so"))
 	{
 		load();
 	}

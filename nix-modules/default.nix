@@ -11,7 +11,6 @@ pkgs.pkgsi686Linux.stdenv.mkDerivation {
 
   nativeBuildInputs = with pkgs; [
     pkg-config
-    dotnet-sdk_9
     makeWrapper
   ];
 
